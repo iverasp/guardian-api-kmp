@@ -16,6 +16,7 @@ kotlin {
         }
     }
     linuxX64()
+    macosArm64()
 
     sourceSets {
         commonMain.dependencies {
@@ -36,6 +37,9 @@ kotlin {
         }
         linuxX64Main.dependencies {
             implementation("io.ktor:ktor-client-curl:3.6.1")
+        }
+        macosArm64Main.dependencies {
+            implementation("io.ktor:ktor-client-darwin:3.6.1")
         }
     }
 }
