@@ -32,7 +32,7 @@ public class AuthClient(
 ) {
     public fun createAuthorizationRequest(
         clientContext: String = "",
-        acrValues: String,
+        acrValues: String = SecurityLevel.DEFAULT.acrValues,
     ): AuthorizationRequest {
         val verifier = randomBase64Url(32)
         val state = randomBase64Url(32)

@@ -19,7 +19,7 @@ val api = GuardianApi(httpClient, store, auth)
 
 val authorization = auth.createAuthorizationRequest(
     clientContext = municipality.vismaConnectClientContext.orEmpty(),
-    acrValues = "idporten-loa-high",
+    acrValues = municipality.securityLevel.acrValues,
 )
 
 // Open authorization.url in a browser and receive the custom-scheme redirect.
