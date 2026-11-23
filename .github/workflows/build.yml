@@ -40,14 +40,12 @@ jobs:
             echo "::warning file=build.gradle.kts::Version $version is already tagged. Bump it if this PR should produce a release."
           fi
 
-  tag:
+  check:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
-      released: ${{ steps.release.outputs.released }}
+      version: ${{ steps.check.outputs.version }}
+      release: ${{ steps.check.outputs.release }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -57,13 +55,12 @@ jobs:
           distribution: temurin
           java-version: 25
       - uses: gradle/actions/setup-gradle@v4
-      - name: Tag and release
-        id: release
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Check version
+        id: check
         run: |
           version=$(./gradlew -q properties | grep '^version:' | cut -d' ' -f2)
           echo "Version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           if [[ "$version" == *-SNAPSHOT ]]; then
             echo "Snapshot version, skipping."
             exit 0
@@ -76,17 +73,12 @@ jobs:
             echo "Tag $version already exists, skipping."
             exit 0
           fi
-          git tag "$version" "$GITHUB_SHA"
-          git push origin "$version"
-          prerelease=""
-          [[ "$version" == *-* ]] && prerelease="--prerelease"
-          gh release create "$version" --verify-tag --generate-notes $prerelease
-          echo "released=true" >> "$GITHUB_OUTPUT"
+          echo "release=true" >> "$GITHUB_OUTPUT"
 
   publish:
-    needs: tag
-    if: needs.tag.outputs.released == 'true'
-    runs-on: macos-latest
+    needs: [build, check]
+    if: needs.check.outputs.release == 'true'
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -106,3 +98,21 @@ jobs:
           publishKotlinMultiplatformPublicationToGitHubPackagesRepository
           publishLinuxX64PublicationToGitHubPackagesRepository
           publishMacosArm64PublicationToGitHubPackagesRepository
+
+  release:
+    needs: [check, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          git tag "$VERSION" "$GITHUB_SHA"
+          git push origin "$VERSION"
+          prerelease=""
+          [[ "$VERSION" == *-* ]] && prerelease="--prerelease"
+          gh release create "$VERSION" --verify-tag --generate-notes $prerelease
