@@ -2,10 +2,30 @@ plugins {
     kotlin("multiplatform") version "2.4.21"
     kotlin("plugin.serialization") version "2.4.21"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
+    `maven-publish`
 }
 
 group = "com.visma.guardian"
-version = "0.1.0"
+version = "0.2.0"
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/iverasp/guardian-api-kmp")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+
+val publishedPublications = setOf("kotlinMultiplatform", "linuxX64", "macosArm64")
+
+tasks.withType<PublishToMavenRepository>().configureEach {
+    onlyIf { publication.name in publishedPublications }
+}
 
 kotlin {
     explicitApi()
