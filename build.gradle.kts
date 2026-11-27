@@ -44,7 +44,7 @@ kotlin {
             implementation("io.ktor:ktor-client-content-negotiation:3.6.1")
             implementation("io.ktor:ktor-serialization-kotlinx-json:3.6.1")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.13.0")
             implementation("com.squareup.okio:okio:3.18.2")
         }
         commonTest.dependencies {
